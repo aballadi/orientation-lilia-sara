@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Boussole — Trouver sa voie</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Work+Sans:wght@400;500;600&display=swap');
+
+:root{
+  --bg:#E9EEE9;
+  --panel:#FBFAF6;
+  --ink:#1E2A22;
+  --ink-soft:#4B594F;
+  --line:#D6DED4;
+  --teal:#2F6F62;
+  --teal-dark:#204D43;
+  --gold:#C08A28;
+  --gold-soft:#EFDCB2;
+  --danger:#A6432F;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:'Work Sans', sans-serif;
+  line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3{
+  font-family:'Fraunces', serif;
+  font-weight:500;
+  margin:0 0 .4em;
+  color:var(--ink);
+}
+#app{max-width:700px;margin:0 auto;padding:28px 20px 80px;}
+header.top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px;flex-wrap:wrap;}
+.brand{display:flex;align-items:center;gap:10px;}
+.brand h1{font-size:22px;}
+.brand .tagline{font-size:12px;color:var(--ink-soft);margin-top:-2px;}
+nav.tabs{display:flex;gap:6px;}
+nav.tabs button{
+  background:transparent;border:1px solid var(--line);color:var(--ink-soft);
+  padding:7px 12px;border-radius:20px;font-size:13px;font-family:'Work Sans',sans-serif;cursor:pointer;
+}
+nav.tabs button.active{background:var(--teal);border-color:var(--teal);color:#fff;}
+
+.panel{
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:26px 26px 22px;
+}
+p.lead{color:var(--ink-soft);font-size:15px;}
+
+.cards-choice{display:flex;gap:14px;margin-top:18px;flex-wrap:wrap;}
+.person-card{
+  flex:1;min-width:220px;background:#fff;border:1px solid var(--line);border-radius:12px;
+  padding:20px;cursor:pointer;text-align:left;font-family:'Work Sans',sans-serif;
+}
+.person-card:hover{border-color:var(--teal);}
+.person-card h3{font-size:18px;margin-bottom:2px;}
+.person-card span{font-size:13px;color:var(--ink-soft);}
+.person-card .go{display:block;margin-top:10px;font-size:13px;color:var(--teal);font-weight:500;}
+
+.parent-link{margin-top:20px;font-size:13px;color:var(--ink-soft);}
+.parent-link a{color:var(--teal);cursor:pointer;text-decoration:underline;}
+
+.progress-line{font-size:12px;color:var(--ink-soft);margin-bottom:8px;}
+.trail{display:flex;align-items:center;margin-bottom:20px;}
+.trail .dot{
+  width:12px;height:12px;border-radius:50%;background:#fff;border:2px solid var(--line);
+  flex-shrink:0;cursor:pointer;
+}
+.trail .dot.done{background:var(--teal);border-color:var(--teal);}
+.trail .dot.current{background:var(--gold);border-color:var(--gold);width:16px;height:16px;}
+.trail .seg{flex:1;height:2px;background:var(--line);margin:0 3px;}
+
+#stepBody label.field-label{display:block;font-size:14px;font-weight:500;margin:0 0 8px;}
+#stepBody textarea, #stepBody input[type=text]{
+  width:100%;font-family:'Work Sans',sans-serif;font-size:14px;color:var(--ink);
+  border:1px solid var(--line);border-radius:8px;padding:10px 12px;background:#fff;
+}
+#stepBody textarea{min-height:70px;resize:vertical;}
+.question-block{margin-bottom:20px;}
+.scale-caption{font-size:12px;color:var(--ink-soft);margin-bottom:14px;}
+.likert-item{margin-bottom:16px;}
+.likert-item p{margin:0 0 8px;font-size:14px;}
+.chips{display:flex;gap:6px;flex-wrap:wrap;}
+.chip{
+  border:1px solid var(--teal);background:transparent;color:var(--teal-dark);
+  padding:6px 13px;border-radius:20px;font-size:13px;cursor:pointer;font-family:'Work Sans',sans-serif;
+}
+.chip.selected{background:var(--teal);color:#fff;}
+.chip.small{padding:5px 11px;font-size:12.5px;}
+.subject-group{margin-bottom:18px;}
+.subject-group h4{font-size:13px;color:var(--ink-soft);font-weight:500;margin:0 0 8px;}
+.rank-cols{display:flex;gap:16px;flex-wrap:wrap;}
+.rank-col{flex:1;min-width:220px;}
+.rank-col h4{font-size:13px;color:var(--ink-soft);font-weight:500;margin:0 0 8px;}
+.rank-col .chip{margin-bottom:6px;}
+ol.ranked{margin:0;padding-left:20px;font-size:13.5px;}
+ol.ranked li{margin-bottom:6px;cursor:pointer;}
+ol.ranked li:hover{color:var(--danger);}
+.slider-row{margin-bottom:18px;}
+.slider-row p{margin:0 0 4px;font-size:14px;}
+.slider-row .val{font-size:12.5px;color:var(--teal-dark);font-weight:500;}
+.slider-row input[type=range]{width:100%;accent-color:var(--gold);}
+.radio-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:14px;}
+footer.nav{display:flex;justify-content:space-between;align-items:center;margin-top:24px;}
+.btn{
+  font-family:'Work Sans',sans-serif;font-size:14px;font-weight:500;border-radius:24px;
+  padding:11px 20px;cursor:pointer;border:1px solid var(--teal);background:var(--teal);color:#fff;
+}
+.btn.secondary{background:transparent;color:var(--teal-dark);}
+.btn.ghost{background:transparent;color:var(--ink-soft);border-color:var(--line);}
+.btn:disabled{opacity:.35;cursor:not-allowed;}
+.btn.danger{border-color:var(--danger);background:transparent;color:var(--danger);}
+
+.bar-row{margin-bottom:12px;}
+.bar-row .lab{display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;}
+.bar-track{background:var(--line);border-radius:6px;height:10px;overflow:hidden;}
+.bar-fill{background:var(--teal);height:100%;border-radius:6px;}
+.result-hero{text-align:center;margin-bottom:18px;}
+.result-hero .big{font-family:'Fraunces',serif;font-size:26px;color:var(--teal-dark);}
+.card-record{background:#fff;border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin-bottom:16px;}
+.card-record h3{font-size:16px;margin-bottom:2px;}
+.card-record .meta{font-size:12px;color:var(--ink-soft);margin-bottom:12px;}
+details summary{cursor:pointer;font-size:13px;color:var(--teal-dark);margin:10px 0 4px;}
+details p.qa{font-size:13.5px;margin:6px 0;}
+details p.qa b{display:block;color:var(--ink-soft);font-weight:500;font-size:12.5px;}
+.suggestion-box{background:var(--gold-soft);border-radius:10px;padding:12px 14px;font-size:13.5px;margin:10px 0;}
+.row-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}
+.toast{
+  position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
+  background:var(--ink);color:#fff;padding:9px 18px;border-radius:20px;font-size:13px;
+  opacity:0;transition:opacity .25s;pointer-events:none;z-index:99;
+}
+.note{font-size:12.5px;color:var(--ink-soft);margin-top:16px;}
+.config-warning{background:#F6E4DD;border:1px solid var(--danger);color:var(--danger);border-radius:10px;padding:12px 14px;font-size:13px;margin-bottom:18px;}
+.config-warning code{background:rgba(0,0,0,.06);padding:1px 5px;border-radius:4px;}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ---------- DONNÉES ---------- */
+const DIMINFO = {
+  R:{label:"Réaliste", desc:"aime le concret, la technique, l'action manuelle ou physique", examples:"ingénierie, artisanat, sport, métiers techniques, agriculture, architecture", future:"robotique, fabrication additive (impression 3D), technologies de la transition énergétique, agritech"},
+  I:{label:"Investigateur", desc:"aime comprendre, analyser, chercher des réponses", examples:"sciences, recherche, médecine, ingénierie, data", future:"intelligence artificielle, data science, biotechnologies, exploration spatiale"},
+  A:{label:"Artistique", desc:"aime créer, imaginer, s'exprimer, sortir des cadres", examples:"design, arts, communication, mode, audiovisuel", future:"création de contenus immersifs (VR/AR), game design, IA créative, industries culturelles digitales"},
+  S:{label:"Social", desc:"aime aider, écouter, transmettre, être avec les autres", examples:"santé, éducation, social, ressources humaines, psychologie", future:"e-santé, télémédecine, EdTech, accompagnement du vieillissement"},
+  E:{label:"Entreprenant", desc:"aime convaincre, diriger, entreprendre, prendre des initiatives", examples:"commerce, management, droit, politique, entrepreneuriat", future:"entrepreneuriat à impact, économie de la création, tech ventures"},
+  C:{label:"Conventionnel", desc:"aime structurer, organiser, la rigueur et la méthode", examples:"gestion, finance, administration, logistique, comptabilité", future:"gouvernance des données, conformité et éthique numérique, gestion de la cybersécurité organisationnelle"}
+};
+const SCALE_WORDS = ["","Pas du tout moi","Un peu moi","Moyennement moi","Plutôt moi","Tout à fait moi"];
+const FUT_WORDS = ["","Pas du tout","Un peu","Moyennement","Beaucoup","Passionnément"];
+
+const PEOPLE = {
+  lilia:{
+    displayName:"Lilia", subtitle:"16 ans · 1ère",
+    likert:[
+      {id:"R1",dim:"R",text:"J'aime comprendre comment fonctionnent les objets techniques (mécanique, électronique, numérique)."},
+      {id:"R2",dim:"R",text:"Je préfère les activités concrètes et manuelles aux tâches abstraites."},
+      {id:"R3",dim:"R",text:"J'aime être en extérieur ou en mouvement plutôt qu'assise à un bureau toute la journée."},
+      {id:"I1",dim:"I",text:"J'aime résoudre des problèmes logiques ou des énigmes complexes."},
+      {id:"I2",dim:"I",text:"Je me pose souvent des questions sur le pourquoi des choses et j'aime chercher des réponses."},
+      {id:"I3",dim:"I",text:"J'aime analyser des données ou des faits avant de me faire un avis."},
+      {id:"A1",dim:"A",text:"J'aime créer, imaginer, inventer : dessin, écriture, musique, vidéo, design..."},
+      {id:"A2",dim:"A",text:"Je supporte mal la routine, j'ai besoin de nouveauté et d'originalité."},
+      {id:"A3",dim:"A",text:"Je préfère qu'on me laisse libre dans ma façon de faire les choses."},
+      {id:"S1",dim:"S",text:"Aider ou écouter les autres me donne de l'énergie."},
+      {id:"S2",dim:"S",text:"On vient souvent me voir pour parler de ce qui ne va pas."},
+      {id:"S3",dim:"S",text:"Je me sens bien dans le travail en équipe et le contact humain."},
+      {id:"E1",dim:"E",text:"J'aime convaincre, négocier ou prendre les devants dans un groupe."},
+      {id:"E2",dim:"E",text:"J'aime organiser des projets ou des événements, motiver les autres."},
+      {id:"E3",dim:"E",text:"Le risque et la compétition ne me font pas peur, ça me stimule plutôt."},
+      {id:"C1",dim:"C",text:"J'aime les tâches où il y a une méthode claire et des règles précises."},
+      {id:"C2",dim:"C",text:"Je suis plutôt organisée, je planifie et j'aime que tout soit rangé."},
+      {id:"C3",dim:"C",text:"Je suis à l'aise avec les chiffres, les tableaux et la gestion de données."}
+    ],
+    subjects:["Français","Mathématiques","Physique-Chimie","SVT","Histoire-Géographie","SES","Langues vivantes","NSI","Arts","EPS","Philosophie","Littérature (HLP)","Sciences de l'ingénieur"],
+    values:[
+      {id:"argent",label:"Gagner beaucoup d'argent"},
+      {id:"impact",label:"Avoir un impact positif sur le monde ou les autres"},
+      {id:"securite",label:"Avoir de la sécurité de l'emploi"},
+      {id:"liberte",label:"Être libre et autonome dans mon travail"},
+      {id:"creativite",label:"Être créative et innovante"},
+      {id:"voyage",label:"Voyager / travailler à l'international"},
+      {id:"equilibre",label:"Avoir un bon équilibre vie pro / vie perso"},
+      {id:"reconnaissance",label:"Être reconnue, avoir du prestige"},
+      {id:"equipe",label:"Travailler en équipe, avoir du lien social au travail"}
+    ],
+    future:[
+      {id:"ia",label:"Intelligence artificielle et robotique"},
+      {id:"espace",label:"Exploration spatiale"},
+      {id:"climat",label:"Environnement et transition climatique"},
+      {id:"sante",label:"Santé et biotechnologies"},
+      {id:"cyber",label:"Cybersécurité"},
+      {id:"creatif_num",label:"Économie créative (jeux vidéo, contenus digitaux)"},
+      {id:"entrepreneuriat",label:"Entrepreneuriat et création d'entreprise"},
+      {id:"societe",label:"Sciences humaines et société"}
+    ],
+    filiereOptions:["Voie générale (spécialités)","Voie technologique","Voie professionnelle","Apprentissage / alternance","Je ne sais pas encore"],
+    open1:[
+      {id:"matieres_pourquoi",label:"Pourquoi aimes-tu les matières que tu as cochées ? Donne au moins une vraie raison (pas juste \"j'ai une bonne note\")."},
+      {id:"matieres_deteste_pourquoi",label:"Pour les matières que tu n'aimes pas : est-ce le contenu, la méthode, ou le prof qui pose problème ?"},
+      {id:"temps_libre",label:"Que fais-tu pendant ton temps libre par choix (loisirs, réseaux, lectures, jeux, activités manuelles) ?"},
+      {id:"experience_concrete",label:"As-tu déjà fait un stage, un job d'été, du bénévolat ou un projet perso (chaîne, association, petit business, code...) ? Décris."}
+    ],
+    open2:[
+      {id:"metier_invente",label:"Si tu devais inventer un métier qui n'existe pas encore, ce serait quoi ?"},
+      {id:"journee_ideale",label:"Imagine ta journée de travail idéale dans 15 ans : où es-tu, avec qui, tu fais quoi concrètement ? (5 lignes environ)"}
+    ],
+    steps:["identity","likert1","likert2","checklist","open1","ranking","sliders","open2","projet","review"]
+  },
+  sara:{
+    displayName:"Sara", subtitle:"13 ans · 4ème",
+    likert:[
+      {id:"R1",dim:"R",text:"J'aime bricoler, construire ou fabriquer des choses de mes mains."},
+      {id:"R2",dim:"R",text:"J'aime bouger, être dehors, faire du sport."},
+      {id:"I1",dim:"I",text:"J'aime comprendre pourquoi les choses marchent comme ça."},
+      {id:"I2",dim:"I",text:"J'aime résoudre des énigmes ou des jeux de logique."},
+      {id:"A1",dim:"A",text:"J'aime imaginer des histoires, dessiner ou créer des choses."},
+      {id:"A2",dim:"A",text:"Je n'aime pas trop la routine, j'aime la nouveauté."},
+      {id:"S1",dim:"S",text:"J'aime aider les autres ou m'occuper de plus petits que moi."},
+      {id:"S2",dim:"S",text:"Je suis touchée quand je vois quelqu'un ou un animal triste."},
+      {id:"E1",dim:"E",text:"J'aime être aux commandes dans un jeu ou un projet de groupe."},
+      {id:"E2",dim:"E",text:"Je n'ai pas peur de prendre la parole devant les autres."},
+      {id:"C1",dim:"C",text:"J'aime quand c'est organisé et prévisible."},
+      {id:"C2",dim:"C",text:"J'aime ranger, classer, faire des listes."}
+    ],
+    future:[
+      {id:"robots",label:"Les robots et l'intelligence artificielle"},
+      {id:"espace",label:"L'espace et les fusées"},
+      {id:"nature",label:"La nature, les animaux, l'écologie"},
+      {id:"inventer",label:"Inventer des objets ou des jeux"},
+      {id:"soigner",label:"Soigner ou aider les gens"},
+      {id:"creer",label:"Créer des vidéos, dessins, musiques ou jeux vidéo"},
+      {id:"argent_entreprises",label:"Comprendre l'argent et les entreprises"}
+    ],
+    open1:[
+      {id:"activite_seule",label:"Qu'est-ce que tu adores faire quand personne ne te le demande ?"},
+      {id:"apres_midi_libre",label:"Si tu avais un après-midi totalement libre, tu ferais quoi ?"},
+      {id:"appris_seule",label:"Quel est le dernier truc que tu as appris toute seule parce que ça t'intéressait ?"},
+      {id:"matieres_aimees",label:"Quelles matières tu aimes bien à l'école, même un peu ?"}
+    ],
+    open2:[
+      {id:"metiers_reve",label:"Quels sont tes 3 métiers \"de rêve\" en ce moment, même si ça change souvent ?"},
+      {id:"personne_modele",label:"Y a-t-il une personne dont le métier te fait envie ? Pourquoi ?"},
+      {id:"ecran_lien",label:"Quel est ton jeu vidéo, ta série ou ta chaîne préférée — et qu'est-ce que ça te donne envie de faire dans la vraie vie ?"}
+    ],
+    open3:[
+      {id:"probleme_monde",label:"Si tu pouvais résoudre UN problème dans le monde, ce serait lequel ?"},
+      {id:"journee_25ans",label:"Imagine que tu as 25 ans : décris une journée de travail qui te rendrait heureuse (dehors ou dedans, seule ou en équipe, avec des enfants, des objets ou des idées...)."}
+    ],
+    steps:["identity","likert1","open1","open2b","sliders","open3","review"]
+  }
+};
+const STEP_LABELS = {
+  identity:"Toi", likert1:"Profil (1/2)", likert2:"Profil (2/2)", checklist:"Matières",
+  open1:"Ton vécu", ranking:"Valeurs", sliders:"Demain", open2:"Projection",
+  open2b:"Métiers et héros", open3:"Projection", projet:"Post-bac", review:"Envoi"
+};
+
+/* ---------- ETAT ---------- */
+let state = { view:"landing", person:null, stepIndex:0, answers:{}, lastRecord:null, parentRecords:[] };
+
+function defaultAnswers(person){
+  const a = { name: PEOPLE[person].displayName, classe: PEOPLE[person].subtitle, future:{} };
+  if(person==="lilia") a.valuesOrder = [];
+  return a;
+}
+function escapeHtml(str){
+  return String(str==null?"":str).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+function toast(msg){
+  const t=document.getElementById("toast");
+  t.textContent=msg; t.style.opacity=1;
+  clearTimeout(window.__toastTimer);
+  window.__toastTimer=setTimeout(()=>{t.style.opacity=0;},2000);
+}
+function copyText(text){
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(()=>toast("Copié dans le presse-papiers")).catch(()=>fallbackCopy(text));
+  } else fallbackCopy(text);
+}
+function fallbackCopy(text){
+  const ta=document.createElement("textarea");
+  ta.value=text; ta.style.position="fixed"; ta.style.opacity="0";
+  document.body.appendChild(ta); ta.select();
+  try{ document.execCommand("copy"); toast("Copié dans le presse-papiers"); }
+  catch(e){ toast("Copie impossible — sélectionne le texte manuellement"); }
+  document.body.removeChild(ta);
+}
+
+/* ---------- STOCKAGE (Google Apps Script + Google Sheet) ---------- */
+const APP_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwJw0XuA1NRaGeXVM3615V5fMYYYN230ltm04HOh1R9wfywTNEHQc3Y8gRT1qLaYQCj/exec";
+function backendConfigured(){
+  return APP_SCRIPT_URL && APP_SCRIPT_URL.indexOf("COLLE_ICI") === -1;
+}
+async function apiPost(action, payload){
+  if(!backendConfigured()) return {ok:false, error:"not_configured"};
+  try{
+    const res = await fetch(APP_SCRIPT_URL, {
+      method:"POST",
+      headers:{"Content-Type":"text/plain;charset=utf-8"},
+      body: JSON.stringify(Object.assign({action:action}, payload))
+    });
+    return await res.json();
+  }catch(e){ console.error(e); return {ok:false, error:String(e)}; }
+}
+async function apiGet(params){
+  if(!backendConfigured()) return {ok:false, error:"not_configured"};
+  try{
+    const qs = new URLSearchParams(params).toString();
+    const res = await fetch(APP_SCRIPT_URL + "?" + qs);
+    return await res.json();
+  }catch(e){ console.error(e); return {ok:false, error:String(e)}; }
+}
+async function saveDraft(){
+  if(!state.person || !backendConfigured()) return;
+  await apiPost("saveDraft", {person: state.person, stepIndex: state.stepIndex, answers: state.answers});
+}
+async function submitResponse(){
+  const computed = computeScores(state.person, state.answers);
+  const id = state.person + "_" + Date.now();
+  const record = {
+    id, person: state.person,
+    name: state.answers.name || PEOPLE[state.person].displayName,
+    classe: state.answers.classe || PEOPLE[state.person].subtitle,
+    date: new Date().toISOString(),
+    answers: state.answers,
+    computed
+  };
+  const res = await apiPost("submit", {record: record});
+  if(!res.ok){ toast("Échec de l'envoi — vérifie ta connexion et réessaie"); return; }
+  state.lastRecord = record;
+  state.view = "results";
+  renderApp();
+}
+
+/* ---------- SCORING ---------- */
+function computeScores(person, answers){
+  const dims = {R:0,I:0,A:0,S:0,E:0,C:0};
+  const max = {R:0,I:0,A:0,S:0,E:0,C:0};
+  PEOPLE[person].likert.forEach(it=>{
+    dims[it.dim] += (answers[it.id]||0);
+    max[it.dim] += 5;
+  });
+  const percents = {};
+  Object.keys(dims).forEach(k=> percents[k] = max[k] ? Math.round(dims[k]/max[k]*100) : 0);
+  const sortedDims = Object.keys(percents).sort((a,b)=>percents[b]-percents[a]);
+
+  const futureList = PEOPLE[person].future;
+  const futureScored = futureList.map(f=>({id:f.id, label:f.label, score:(answers.future && answers.future[f.id]) || 0}));
+  futureScored.sort((a,b)=>b.score-a.score);
+
+  let valuesRanked = [];
+  if(person==="lilia" && answers.valuesOrder){
+    valuesRanked = answers.valuesOrder.map(id => (PEOPLE.lilia.values.find(v=>v.id===id)||{}).label).filter(Boolean);
+  }
+  return { percents, sortedDims, futureScored, valuesRanked };
+}
+function buildSuggestion(person, computed){
+  const d1 = DIMINFO[computed.sortedDims[0]];
+  const d2 = DIMINFO[computed.sortedDims[1]];
+  const topFuture = computed.futureScored.slice(0,3).filter(f=>f.score>=4).map(f=>f.label);
+  let txt = "Profil dominant : " + d1.label + " (" + d1.desc + "), avec une composante " + d2.label + " (" + d2.desc + "). ";
+  txt += "Pistes classiques à explorer : " + d1.examples + ", ainsi que " + d2.examples + ". ";
+  if(topFuture.length){
+    txt += "Vu l'intérêt marqué pour " + topFuture.join(", ") + ", des pistes émergentes à regarder : " + d1.future + " ; " + d2.future + ".";
+  } else {
+    txt += "Pistes émergentes à regarder aussi : " + d1.future + " ; " + d2.future + ".";
+  }
+  return txt;
+}
+
+/* ---------- INTERACTIONS (pas de re-render complet) ---------- */
+function setAnswer(field, value){ state.answers[field] = value; }
+function setLikert(id, val){ state.answers[id] = val; refreshStepContent(); }
+function toggleSubject(group, idx){
+  const subject = PEOPLE[state.person].subjects[idx];
+  const key = group==="liked" ? "subjectsLiked" : "subjectsDisliked";
+  state.answers[key] = state.answers[key] || [];
+  const i = state.answers[key].indexOf(subject);
+  if(i>=0) state.answers[key].splice(i,1); else state.answers[key].push(subject);
+  refreshStepContent();
+}
+function rankAdd(id){
+  state.answers.valuesOrder = state.answers.valuesOrder || [];
+  state.answers.valuesOrder.push(id);
+  refreshStepContent();
+}
+function rankRemove(id){
+  state.answers.valuesOrder = (state.answers.valuesOrder||[]).filter(x=>x!==id);
+  refreshStepContent();
+}
+function updateFuture(id, value, inputEl){
+  state.answers.future = state.answers.future || {};
+  state.answers.future[id] = Number(value);
+  const span = inputEl.parentElement.querySelector(".val");
+  if(span) span.textContent = FUT_WORDS[Number(value)];
+}
+function setRadio(field, value){ state.answers[field] = value; refreshStepContent(); }
+function setRadioByIndex(field, listName, idx){
+  const value = PEOPLE[state.person][listName][idx];
+  state.answers[field] = value; refreshStepContent();
+}
+
+/* ---------- RENDU : LANDING ---------- */
+function renderLanding(){
+  return `
+  <div class="panel">
+    ${!backendConfigured() ? '<div class="config-warning">Configuration requise : ouvre le fichier et remplace <code>https://script.google.com/macros/s/AKfycbwJw0XuA1NRaGeXVM3615V5fMYYYN230ltm04HOh1R9wfywTNEHQc3Y8gRT1qLaYQCj/exec</code> par l\'URL de ton Google Apps Script (voir les instructions fournies). Tant que ce n\'est pas fait, les réponses ne seront pas sauvegardées.</div>' : ''}
+    <h2>Boussole — trouver sa voie</h2>
+    <p class="lead">Un questionnaire pour t'aider à mieux cerner ce qui te motive, ce que tu aimes, et les pistes d'études et de métiers qui pourraient te correspondre — y compris des métiers qui n'existent pas encore vraiment aujourd'hui.</p>
+    <div class="cards-choice">
+      <button class="person-card" onclick="selectPerson('lilia')">
+        <h3>Lilia</h3>
+        <span>16 ans · 1ère</span>
+        <span class="go">Commencer →</span>
+      </button>
+      <button class="person-card" onclick="selectPerson('sara')">
+        <h3>Sara</h3>
+        <span>13 ans · 4ème</span>
+        <span class="go">Commencer →</span>
+      </button>
+    </div>
+    <p class="parent-link">Tu es le parent et tu veux consulter les réponses déjà données ? <a onclick="goParent()">Ouvrir l'espace parent</a></p>
+  </div>`;
+}
+
+/* ---------- RENDU : FORMULAIRE ---------- */
+function currentStepType(){
+  return PEOPLE[state.person].steps[state.stepIndex];
+}
+async function selectPerson(person){
+  let resumed = false;
+  if(backendConfigured()){
+    const res = await apiGet({action:"draft", person: person});
+    if(res && res.ok && res.exists && res.draft){
+      if(confirm("Une réponse en cours a été trouvée pour "+PEOPLE[person].displayName+". Reprendre où tu en étais ?")){
+        state.answers = res.draft.answers; state.stepIndex = res.draft.stepIndex; resumed = true;
+      }
+    }
+  }
+  if(!resumed){ state.answers = defaultAnswers(person); state.stepIndex = 0; }
+  state.person = person; state.view = "form";
+  renderApp();
+}
+function goToStep(i){ saveDraft(); state.stepIndex = i; renderApp(); }
+function nextStep(){
+  const steps = PEOPLE[state.person].steps;
+  if(state.stepIndex < steps.length-1){ state.stepIndex++; saveDraft(); renderApp(); }
+}
+function prevStep(){
+  if(state.stepIndex>0){ state.stepIndex--; renderApp(); }
+}
+function goLanding(){ state.view="landing"; state.person=null; renderApp(); }
+
+function renderTrail(){
+  const steps = PEOPLE[state.person].steps;
+  let html = '<div class="progress-line">Étape ' + (state.stepIndex+1) + ' / ' + steps.length + ' · ' + STEP_LABELS[currentStepType()] + '</div>';
+  html += '<div class="trail">';
+  steps.forEach((s,i)=>{
+    const cls = i===state.stepIndex ? "current" : (i<state.stepIndex ? "done" : "");
+    html += '<span class="dot ' + cls + '" title="' + STEP_LABELS[s] + '" onclick="goToStep(' + i + ')"></span>';
+    if(i<steps.length-1) html += '<span class="seg"></span>';
+  });
+  html += '</div>';
+  return html;
+}
+
+function renderStepBody(){
+  const type = currentStepType();
+  const p = PEOPLE[state.person];
+  const a = state.answers;
+  if(type==="identity"){
+    return `
+      <h2>C'est toi ?</h2>
+      <p class="lead">Vérifie ou corrige ton prénom et ta classe avant de commencer. Il n'y a pas de bonnes ou de mauvaises réponses dans ce questionnaire — réponds ce qui te ressemble vraiment.</p>
+      <label class="field-label">Prénom
+        <input type="text" value="${escapeHtml(a.name)}" oninput="setAnswer('name', this.value)">
+      </label>
+      <label class="field-label" style="margin-top:14px;">Classe / niveau
+        <input type="text" value="${escapeHtml(a.classe)}" oninput="setAnswer('classe', this.value)">
+      </label>`;
+  }
+  if(type==="likert1" || type==="likert2"){
+    const items = type==="likert1" ? p.likert.slice(0, Math.ceil(p.likert.length/2)) : p.likert.slice(Math.ceil(p.likert.length/2));
+    let html = '<h2>Comment tu fonctionnes</h2><p class="scale-caption">Pour chaque phrase, choisis le chiffre qui te correspond le mieux : 1 = pas du tout moi, 5 = tout à fait moi.</p>';
+    items.forEach(it=>{
+      html += '<div class="likert-item"><p>' + escapeHtml(it.text) + '</p><div class="chips">';
+      for(let n=1;n<=5;n++){
+        const sel = a[it.id]===n ? "selected" : "";
+        html += '<button type="button" class="chip ' + sel + '" onclick="setLikert(\'' + it.id + '\',' + n + ')" title="' + SCALE_WORDS[n] + '">' + n + '</button>';
+      }
+      html += '</div></div>';
+    });
+    return html;
+  }
+  if(type==="checklist"){
+    let html = '<h2>Tes matières</h2><p class="lead">Coche les matières concernées, dans chaque groupe.</p>';
+    html += '<div class="subject-group"><h4>Matières que j\'aime</h4><div class="chips">';
+    p.subjects.forEach((s,i)=>{
+      const sel = (a.subjectsLiked||[]).includes(s) ? "selected" : "";
+      html += '<button type="button" class="chip small ' + sel + '" onclick="toggleSubject(\'liked\',' + i + ')">' + escapeHtml(s) + '</button>';
+    });
+    html += '</div></div>';
+    html += '<div class="subject-group"><h4>Matières que je n\'aime pas</h4><div class="chips">';
+    p.subjects.forEach((s,i)=>{
+      const sel = (a.subjectsDisliked||[]).includes(s) ? "selected" : "";
+      html += '<button type="button" class="chip small ' + sel + '" onclick="toggleSubject(\'disliked\',' + i + ')">' + escapeHtml(s) + '</button>';
+    });
+    html += '</div></div>';
+    return html;
+  }
+  if(type==="open1" || type==="open2" || type==="open2b" || type==="open3"){
+    const questions = type==="open1" ? p.open1 : (type==="open2" ? p.open2 : (type==="open2b" ? p.open2 : p.open3));
+    const title = type==="open1" ? (state.person==="lilia" ? "Tes pratiques et ton vécu" : "Ce que tu aimes faire") :
+                  (type==="open2b" ? "Métiers et héros" : "Se projeter");
+    let html = '<h2>' + title + '</h2>';
+    questions.forEach(q=>{
+      html += '<div class="question-block"><label class="field-label">' + escapeHtml(q.label) + '</label>';
+      html += '<textarea oninput="setAnswer(\'' + q.id + '\', this.value)">' + escapeHtml(a[q.id]||"") + '</textarea></div>';
+    });
+    return html;
+  }
+  if(type==="ranking"){
+    a.valuesOrder = a.valuesOrder || [];
+    const pool = p.values.filter(v=>!a.valuesOrder.includes(v.id));
+    let html = '<h2>Ce qui compte pour toi</h2><p class="lead">Clique sur les valeurs dans l\'ordre, de la plus importante à la moins importante. Clique sur un élément déjà classé pour le retirer.</p>';
+    html += '<div class="rank-cols"><div class="rank-col"><h4>À classer</h4><div class="chips">';
+    pool.forEach(v=>{
+      html += '<button type="button" class="chip small" onclick="rankAdd(\'' + v.id + '\')">' + escapeHtml(v.label) + '</button>';
+    });
+    html += '</div></div><div class="rank-col"><h4>Ton classement</h4><ol class="ranked">';
+    a.valuesOrder.forEach(id=>{
+      const v = p.values.find(x=>x.id===id);
+      if(v) html += '<li onclick="rankRemove(\'' + id + '\')">' + escapeHtml(v.label) + '</li>';
+    });
+    html += '</ol></div></div>';
+    return html;
+  }
+  if(type==="sliders"){
+    let html = '<h2>Ta curiosité pour demain</h2><p class="lead">Sur une échelle de 1 à 5, quel est ton niveau d\'intérêt pour chacun de ces domaines ?</p>';
+    p.future.forEach(f=>{
+      const v = (a.future && a.future[f.id]) || 3;
+      html += '<div class="slider-row"><p>' + escapeHtml(f.label) + ' <span class="val">' + FUT_WORDS[v] + '</span></p>';
+      html += '<input type="range" min="1" max="5" step="1" value="' + v + '" oninput="updateFuture(\'' + f.id + '\', this.value, this)"></div>';
+    });
+    return html;
+  }
+  if(type==="projet"){
+    let html = '<h2>Ton projet post-bac</h2>';
+    html += '<label class="field-label">As-tu une idée de filière ?</label>';
+    p.filiereOptions.forEach(opt=>{
+      const checked = a.filiere===opt ? "checked" : "";
+      const filiereIdx = p.filiereOptions.indexOf(opt);
+      html += '<div class="radio-row"><input type="radio" name="filiere" id="fil_' + opt.replace(/[^a-zA-Z]/g,"") + '" ' + checked + ' onchange="setRadioByIndex(\'filiere\',\'filiereOptions\',' + filiereIdx + ')"><label for="fil_' + opt.replace(/[^a-zA-Z]/g,"") + '">' + escapeHtml(opt) + '</label></div>';
+    });
+    html += '<div class="question-block" style="margin-top:14px;"><label class="field-label">Quelles spécialités actuelles ou envisagées ?</label>';
+    html += '<textarea oninput="setAnswer(\'specialites\', this.value)">' + escapeHtml(a.specialites||"") + '</textarea></div>';
+    html += '<label class="field-label" style="margin-top:6px;">Es-tu prête à changer de ville ou de pays pour étudier ?</label>';
+    ["Oui","Non","Je ne sais pas"].forEach(opt=>{
+      const checked = a.mobilite===opt ? "checked" : "";
+      html += '<div class="radio-row"><input type="radio" name="mobilite" id="mob_' + opt.replace(/[^a-zA-Z]/g,"") + '" ' + checked + ' onchange="setRadio(\'mobilite\',\'' + opt + '\')"><label for="mob_' + opt.replace(/[^a-zA-Z]/g,"") + '">' + opt + '</label></div>';
+    });
+    html += '<div class="question-block" style="margin-top:14px;"><label class="field-label">Y a-t-il un métier que ton entourage t\'a suggéré ? Qu\'en penses-tu vraiment ?</label>';
+    html += '<textarea oninput="setAnswer(\'suggestion_entourage\', this.value)">' + escapeHtml(a.suggestion_entourage||"") + '</textarea></div>';
+    html += '<div class="question-block"><label class="field-label">Y a-t-il un métier qui te fait rêver mais que tu n\'oses pas dire à voix haute ? Pourquoi ?</label>';
+    html += '<textarea oninput="setAnswer(\'reve_cache\', this.value)">' + escapeHtml(a.reve_cache||"") + '</textarea></div>';
+    return html;
+  }
+  if(type==="review"){
+    return `
+      <h2>Prête à envoyer ?</h2>
+      <p class="lead">Une fois envoyées, tes réponses seront enregistrées. Ton parent pourra ensuite consulter une analyse de ton profil dans l'espace parent.</p>
+      <button class="btn" onclick="submitResponse()">Envoyer mes réponses</button>`;
+  }
+  return "";
+}
+function refreshStepContent(){
+  const el = document.getElementById("stepBody");
+  if(el) el.innerHTML = renderStepBody();
+}
+function renderForm(){
+  const steps = PEOPLE[state.person].steps;
+  const type = currentStepType();
+  const isReview = type==="review";
+  let html = '<div class="panel">';
+  html += renderTrail();
+  html += '<div id="stepBody">' + renderStepBody() + '</div>';
+  if(!isReview){
+    html += '<footer class="nav">';
+    html += '<button class="btn ghost" onclick="prevStep()" ' + (state.stepIndex===0?"disabled":"") + '>Précédent</button>';
+    html += '<button class="btn" onclick="nextStep()">Continuer</button>';
+    html += '</footer>';
+  } else {
+    html += '<footer class="nav"><button class="btn ghost" onclick="prevStep()">Précédent</button><span></span></footer>';
+  }
+  html += '</div>';
+  return html;
+}
+
+/* ---------- RENDU : RESULTATS (après envoi) ---------- */
+function renderResults(){
+  const r = state.lastRecord;
+  const c = r.computed;
+  let html = '<div class="panel">';
+  html += '<div class="result-hero"><p class="lead">Merci ' + escapeHtml(r.name) + ' !</p><div class="big">' + DIMINFO[c.sortedDims[0]].label + ' · ' + DIMINFO[c.sortedDims[1]].label + '</div></div>';
+  ["R","I","A","S","E","C"].forEach(k=>{
+    html += '<div class="bar-row"><div class="lab"><span>' + DIMINFO[k].label + '</span><span>' + c.percents[k] + '%</span></div><div class="bar-track"><div class="bar-fill" style="width:' + c.percents[k] + '%"></div></div></div>';
+  });
+  html += '<p class="note">Tes réponses ont été enregistrées. Ton parent pourra voir une analyse complète dans l\'espace parent. Ceci est un outil de réflexion, pas un test diagnostique.</p>';
+  html += '<footer class="nav"><button class="btn secondary" onclick="goLanding()">Retour à l\'accueil</button></footer>';
+  html += '</div>';
+  return html;
+}
+
+/* ---------- RENDU : ESPACE PARENT ---------- */
+async function goParent(){
+  state.view = "parent";
+  renderApp();
+  await loadParentRecords();
+  renderApp();
+}
+async function loadParentRecords(){
+  if(!backendConfigured()){ state.parentRecords = []; return; }
+  const res = await apiGet({action:"list"});
+  const records = (res && res.ok && res.records) ? res.records : [];
+  records.sort((a,b)=> new Date(b.date) - new Date(a.date));
+  state.parentRecords = records;
+}
+function recordSummaryText(r){
+  const c = r.computed;
+  let txt = "Réponse de " + r.name + " (" + r.classe + ") — " + new Date(r.date).toLocaleDateString("fr-FR") + "\n\n";
+  txt += "Profil RIASEC :\n";
+  ["R","I","A","S","E","C"].forEach(k=>{ txt += "- " + DIMINFO[k].label + " : " + c.percents[k] + "%\n"; });
+  txt += "\n" + buildSuggestion(r.person, c) + "\n";
+  if(c.valuesRanked && c.valuesRanked.length){
+    txt += "\nValeurs, du plus important au moins important :\n" + c.valuesRanked.map((v,i)=>(i+1)+". "+v).join("\n") + "\n";
+  }
+  if(c.futureScored && c.futureScored.length){
+    txt += "\nIntérêt pour les domaines d'avenir :\n" + c.futureScored.map(f=> f.label + " : " + FUT_WORDS[f.score]).join("\n") + "\n";
+  }
+  txt += "\nRéponses ouvertes :\n";
+  Object.keys(r.answers).forEach(k=>{
+    const v = r.answers[k];
+    if(typeof v === "string" && v.trim().length){ txt += "- " + k + " : " + v + "\n"; }
+  });
+  return txt;
+}
+async function deleteRecord(id){
+  if(!confirm("Supprimer définitivement cette réponse ?")) return;
+  await apiPost("deleteResponse", {id: id});
+  await loadParentRecords();
+  renderApp();
+}
+async function clearAll(){
+  if(!confirm("Effacer TOUTES les réponses enregistrées ? Cette action est irréversible.")) return;
+  await apiPost("clearAll", {});
+  await loadParentRecords();
+  renderApp();
+}
+function renderParent(){
+  let html = '<div class="panel">';
+  if(!backendConfigured()){
+    html += '<div class="config-warning">Configuration requise : remplace <code>https://script.google.com/macros/s/AKfycbwJw0XuA1NRaGeXVM3615V5fMYYYN230ltm04HOh1R9wfywTNEHQc3Y8gRT1qLaYQCj/exec</code> par l\'URL de ton Google Apps Script dans le fichier pour voir les réponses ici.</div>';
+  }
+  html += '<h2>Espace parent</h2>';
+  html += '<p class="lead">Résultats et réponses enregistrés pour Lilia et Sara. Cet outil aide à repérer des pistes de réflexion — il ne remplace pas un entretien avec un(e) psychologue de l\'Éducation nationale.</p>';
+  if(!state.parentRecords.length){
+    html += '<p class="note">Aucune réponse enregistrée pour le moment.</p>';
+  } else {
+    html += '<div class="row-actions" style="margin-bottom:16px;"><button class="btn secondary" onclick="loadParentRecords().then(renderApp)">Actualiser</button><button class="btn danger" onclick="clearAll()">Tout effacer</button></div>';
+    state.parentRecords.forEach(r=>{
+      const c = r.computed;
+      html += '<div class="card-record">';
+      html += '<h3>' + escapeHtml(r.name) + '</h3>';
+      html += '<div class="meta">' + escapeHtml(r.classe) + ' · envoyé le ' + new Date(r.date).toLocaleDateString("fr-FR") + '</div>';
+      ["R","I","A","S","E","C"].forEach(k=>{
+        html += '<div class="bar-row"><div class="lab"><span>' + DIMINFO[k].label + '</span><span>' + c.percents[k] + '%</span></div><div class="bar-track"><div class="bar-fill" style="width:' + c.percents[k] + '%"></div></div></div>';
+      });
+      html += '<div class="suggestion-box">' + escapeHtml(buildSuggestion(r.person, c)) + '</div>';
+      if(c.valuesRanked && c.valuesRanked.length){
+        html += '<p class="qa"><b>Valeurs prioritaires</b>' + c.valuesRanked.slice(0,3).map((v,i)=>(i+1)+". "+escapeHtml(v)).join(" · ") + '</p>';
+      }
+      if(c.futureScored && c.futureScored.length){
+        html += '<p class="qa"><b>Domaines d\'avenir les plus cités</b>' + c.futureScored.slice(0,3).map(f=>escapeHtml(f.label)).join(" · ") + '</p>';
+      }
+      html += '<details><summary>Voir toutes les réponses ouvertes</summary>';
+      Object.keys(r.answers).forEach(k=>{
+        const v = r.answers[k];
+        if(typeof v === "string" && v.trim().length){
+          html += '<p class="qa"><b>' + escapeHtml(k) + '</b>' + escapeHtml(v) + '</p>';
+        }
+      });
+      html += '</details>';
+      html += '<div class="row-actions">';
+      html += '<button class="btn secondary" onclick="copyText(recordSummaryText(state.parentRecords.find(x=>x.id===\'' + r.id + '\')))">Copier le résumé (texte)</button>';
+      html += '<button class="btn ghost" onclick="deleteRecord(\'' + r.id + '\')">Supprimer</button>';
+      html += '</div></div>';
+    });
+    html += '<div class="row-actions"><button class="btn secondary" onclick="copyText(JSON.stringify(state.parentRecords,null,2))">Copier tout en JSON (pour analyse approfondie)</button></div>';
+    html += '<p class="note">Astuce : colle le résumé texte ou le JSON dans une conversation avec Claude pour obtenir une analyse plus poussée et des propositions de métiers et de parcours personnalisées.</p>';
+  }
+  html += '<footer class="nav"><span></span></footer>';
+  html += '</div>';
+  return html;
+}
+
+/* ---------- RENDU GENERAL ---------- */
+function renderApp(){
+  const app = document.getElementById("app");
+  let inner = '<header class="top"><div class="brand"><div><h1>Boussole</h1><div class="tagline">Trouver sa voie</div></div></div>';
+  inner += '<nav class="tabs">';
+  inner += '<button class="' + (state.view!=="parent"?"active":"") + '" onclick="goLanding()">Répondre</button>';
+  inner += '<button class="' + (state.view==="parent"?"active":"") + '" onclick="goParent()">Espace parent</button>';
+  inner += '</nav></header>';
+  if(state.view==="landing") inner += renderLanding();
+  else if(state.view==="form") inner += renderForm();
+  else if(state.view==="results") inner += renderResults();
+  else if(state.view==="parent") inner += renderParent();
+  app.innerHTML = inner;
+}
+renderApp();
+</script>
+</body>
+</html>
