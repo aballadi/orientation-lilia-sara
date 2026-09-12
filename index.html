@@ -298,7 +298,7 @@ function fallbackCopy(text){
 }
 
 /* ---------- STOCKAGE (Google Apps Script + Google Sheet) ---------- */
-const APP_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwJw0XuA1NRaGeXVM3615V5fMYYYN230ltm04HOh1R9wfywTNEHQc3Y8gRT1qLaYQCj/exec";
+const APP_SCRIPT_URL = "https://aballadi.github.io/orientation-lilia-sara/";
 function backendConfigured(){
   return APP_SCRIPT_URL && APP_SCRIPT_URL.indexOf("COLLE_ICI") === -1;
 }
@@ -325,7 +325,12 @@ async function saveDraft(){
   if(!state.person || !backendConfigured()) return;
   await apiPost("saveDraft", {person: state.person, stepIndex: state.stepIndex, answers: state.answers});
 }
+let isSubmitting = false;
 async function submitResponse(){
+  if(isSubmitting) return;
+  isSubmitting = true;
+  const btn = document.getElementById("submitBtn");
+  if(btn){ btn.disabled = true; btn.textContent = "Envoi en cours..."; }
   const computed = computeScores(state.person, state.answers);
   const id = state.person + "_" + Date.now();
   const record = {
@@ -337,10 +342,16 @@ async function submitResponse(){
     computed
   };
   const res = await apiPost("submit", {record: record});
-  if(!res.ok){ toast("Échec de l'envoi — vérifie ta connexion et réessaie"); return; }
+  if(!res.ok){
+    toast("Échec de l'envoi — vérifie ta connexion et réessaie");
+    isSubmitting = false;
+    if(btn){ btn.disabled = false; btn.textContent = "Envoyer mes réponses"; }
+    return;
+  }
   state.lastRecord = record;
   state.view = "results";
   renderApp();
+  isSubmitting = false;
 }
 
 /* ---------- SCORING ---------- */
@@ -415,7 +426,7 @@ function setRadioByIndex(field, listName, idx){
 function renderLanding(){
   return `
   <div class="panel">
-    ${!backendConfigured() ? '<div class="config-warning">Configuration requise : ouvre le fichier et remplace <code>https://script.google.com/macros/s/AKfycbwJw0XuA1NRaGeXVM3615V5fMYYYN230ltm04HOh1R9wfywTNEHQc3Y8gRT1qLaYQCj/exec</code> par l\'URL de ton Google Apps Script (voir les instructions fournies). Tant que ce n\'est pas fait, les réponses ne seront pas sauvegardées.</div>' : ''}
+    ${!backendConfigured() ? '<div class="config-warning">Configuration requise : ouvre le fichier et remplace <code>COLLE_ICI_TON_URL_APPS_SCRIPT</code> par l\'URL de ton Google Apps Script (voir les instructions fournies). Tant que ce n\'est pas fait, les réponses ne seront pas sauvegardées.</div>' : ''}
     <h2>Boussole — trouver sa voie</h2>
     <p class="lead">Un questionnaire pour t'aider à mieux cerner ce qui te motive, ce que tu aimes, et les pistes d'études et de métiers qui pourraient te correspondre — y compris des métiers qui n'existent pas encore vraiment aujourd'hui.</p>
     <div class="cards-choice">
@@ -491,7 +502,9 @@ function renderStepBody(){
       </label>`;
   }
   if(type==="likert1" || type==="likert2"){
-    const items = type==="likert1" ? p.likert.slice(0, Math.ceil(p.likert.length/2)) : p.likert.slice(Math.ceil(p.likert.length/2));
+    const hasTwoScreens = p.steps.indexOf("likert2") !== -1;
+    const items = !hasTwoScreens ? p.likert :
+      (type==="likert1" ? p.likert.slice(0, Math.ceil(p.likert.length/2)) : p.likert.slice(Math.ceil(p.likert.length/2)));
     let html = '<h2>Comment tu fonctionnes</h2><p class="scale-caption">Pour chaque phrase, choisis le chiffre qui te correspond le mieux : 1 = pas du tout moi, 5 = tout à fait moi.</p>';
     items.forEach(it=>{
       html += '<div class="likert-item"><p>' + escapeHtml(it.text) + '</p><div class="chips">';
@@ -580,7 +593,7 @@ function renderStepBody(){
     return `
       <h2>Prête à envoyer ?</h2>
       <p class="lead">Une fois envoyées, tes réponses seront enregistrées. Ton parent pourra ensuite consulter une analyse de ton profil dans l'espace parent.</p>
-      <button class="btn" onclick="submitResponse()">Envoyer mes réponses</button>`;
+      <button class="btn" id="submitBtn" onclick="submitResponse()">Envoyer mes réponses</button>`;
   }
   return "";
 }
@@ -670,7 +683,7 @@ async function clearAll(){
 function renderParent(){
   let html = '<div class="panel">';
   if(!backendConfigured()){
-    html += '<div class="config-warning">Configuration requise : remplace <code>https://script.google.com/macros/s/AKfycbwJw0XuA1NRaGeXVM3615V5fMYYYN230ltm04HOh1R9wfywTNEHQc3Y8gRT1qLaYQCj/exec</code> par l\'URL de ton Google Apps Script dans le fichier pour voir les réponses ici.</div>';
+    html += '<div class="config-warning">Configuration requise : remplace <code>COLLE_ICI_TON_URL_APPS_SCRIPT</code> par l\'URL de ton Google Apps Script dans le fichier pour voir les réponses ici.</div>';
   }
   html += '<h2>Espace parent</h2>';
   html += '<p class="lead">Résultats et réponses enregistrés pour Lilia et Sara. Cet outil aide à repérer des pistes de réflexion — il ne remplace pas un entretien avec un(e) psychologue de l\'Éducation nationale.</p>';
